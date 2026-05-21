@@ -175,6 +175,25 @@ Lifejacket is one of a set of open tools for people who build with Claude:
 - **[Claude Lifeboat](https://github.com/JackBhanded/claude-lifeboat)** — backup & restore for your Claude data.
 - **Claude Lifejacket** — keep every session aware of your projects. *(you are here)*
 
+## About the author
+
+<table>
+<tr>
+<td width="120" valign="top">
+<img src="https://www.SawYouAtSinai.com/_layouts/images/team/jackbio.jpg" width="100" alt="Jack Bhanded">
+</td>
+<td valign="top">
+
+Built by **[Jack Bhanded](https://www.sawyouatsinai.com/jewish-dating-team.aspx)**, Lead developer and architect at [SawYouAtSinai](https://www.sawyouatsinai.com). Devotee of innovative technologies and gadgets. Built this because he runs Claude across Claude Code and Cowork all day and was tired of re-explaining the same projects to every fresh session.
+
+</td>
+</tr>
+</table>
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the version-by-version list of changes.
+
 ## License
 
-MIT © Jack Bhanded. See [LICENSE](LICENSE).
+[MIT](LICENSE) © Jack Bhanded — do whatever you want, just keep the copyright notice.
