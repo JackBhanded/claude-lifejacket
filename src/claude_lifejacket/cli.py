@@ -20,19 +20,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import List, Optional
 
 from . import __version__
 from .dashboard import write_dashboard
+from .discover import discover_candidates
 from .hookconfig import (
     hook_command,
     install_session_start_hook,
     settings_path,
     uninstall_session_start_hook,
 )
-from .store import Project, Store, StoreError, default_home
+from .store import Project, Store, StoreError, default_home, slugify
 from .surfaces import claude_code_home, discover_surfaces, load_extra_surfaces
 from .sync import preview_all, sync_all
 
@@ -96,6 +98,41 @@ def cmd_list(args) -> int:
         if meta:
             line += "\n      " + " | ".join(meta)
         _out(line)
+    return 0
+
+
+def cmd_show(args) -> int:
+    s = _store()
+    p = s.get(args.id) or s.get(slugify(args.id))
+    if not p:
+        _out(f"{LIFE_RING} No project '{args.id}' in your logbook. "
+             "Run  python -m claude_lifejacket list  to see what's there.")
+        return 1
+    _out(f"{LIFE_RING} {p.name}")
+    _out(f"    id:       {p.id}")
+    _out(f"    status:   {p.status or '—'}")
+    _out(f"    focus:    {p.focus or '—'}")
+    _out(f"    repo:     {p.repo or '—'}")
+    _out(f"    path:     {p.path or '—'}")
+    _out(f"    updated:  {p.updated}")
+    # Peek inside the folder so you can actually see what's in the project.
+    if p.path and Path(p.path).exists():
+        try:
+            entries = sorted(os.listdir(p.path))
+        except OSError:
+            entries = []
+        if entries:
+            shown = entries[:25]
+            _out("")
+            _out(f"    What's inside ({len(entries)} item(s)):")
+            for e in shown:
+                tag = "/" if Path(p.path, e).is_dir() else ""
+                _out(f"      - {e}{tag}")
+            if len(entries) > len(shown):
+                _out(f"      … and {len(entries) - len(shown)} more")
+    elif p.path:
+        _out("")
+        _out("    (That folder isn't on this machine right now.)")
     return 0
 
 
@@ -223,6 +260,59 @@ def cmd_hook(args) -> int:
     return 0
 
 
+def cmd_discover(args) -> int:
+    s = _store()
+    s.init()
+    cands = discover_candidates(store=s, projects_root=args.projects_root)
+    if not cands:
+        _out(f"{LIFE_RING} Nothing new to discover — your logbook already has "
+             "everything I can see. ")
+        return 0
+
+    def _add(chosen):
+        added = 0
+        for c in chosen:
+            try:
+                s.add(Project.create(c.name, path=c.path))
+                added += 1
+            except StoreError:
+                pass  # already there / slug clash — skip quietly
+        return added
+
+    if args.all:
+        n = _add(cands)
+        _out(f"{LIFE_RING} Added {n} project(s) to your logbook.")
+        _out("    Run  python -m claude_lifejacket sync  to share them with "
+             "every Claude session.")
+        return 0
+
+    if args.add:
+        picks = []
+        for tok in args.add.replace(" ", "").split(","):
+            if not tok:
+                continue
+            if not tok.isdigit() or not (1 <= int(tok) <= len(cands)):
+                _out(f"{LIFE_RING} '{tok}' isn't one of the numbers below "
+                     f"(1–{len(cands)}). Nothing added.")
+                return 1
+            picks.append(cands[int(tok) - 1])
+        n = _add(picks)
+        _out(f"{LIFE_RING} Added {n} project(s) to your logbook.")
+        _out("    Run  python -m claude_lifejacket sync  to share them.")
+        return 0
+
+    # Default: just show what was found and how to add it.
+    _out(f"{LIFE_RING} Found {len(cands)} project(s) not yet in your logbook:")
+    _out("")
+    for i, c in enumerate(cands, 1):
+        _out(f"  [{i}] {c.name}   ({c.source})")
+        _out(f"      {c.path}")
+    _out("")
+    _out("  Add some:  python -m claude_lifejacket discover --add 1,2,3")
+    _out("  Add all:   python -m claude_lifejacket discover --all")
+    return 0
+
+
 def cmd_dashboard(args) -> int:
     s = _store()
     s.init()
@@ -235,6 +325,21 @@ def cmd_dashboard(args) -> int:
             _out("    Opening it in your browser now. ")
         except Exception:
             _out("    Open that file in any browser to see it.")
+    return 0
+
+
+def cmd_log(args) -> int:
+    s = _store()
+    events = s.read_recent_events(args.lines)
+    if not events:
+        _out(f"{LIFE_RING} No activity yet — run a sync and it'll show up here.")
+        return 0
+    _out(f"{LIFE_RING} Recent activity ({len(events)} line(s)):")
+    _out("")
+    for line in events:
+        _out("  " + line)
+    _out("")
+    _out(f"    Full log: {s.activity_log_path}")
     return 0
 
 
@@ -283,6 +388,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("list", help="show your projects").set_defaults(func=cmd_list)
 
+    sh = sub.add_parser("show", help="show one project's details + folder contents")
+    sh.add_argument("id")
+    sh.set_defaults(func=cmd_show)
+
+    dsc = sub.add_parser("discover",
+                         help="find projects not yet in your logbook")
+    dsc.add_argument("--all", action="store_true", help="add everything found")
+    dsc.add_argument("--add", help="add by number, e.g. --add 1,3,4")
+    dsc.add_argument("--projects-root",
+                     help="folder to scan for Cowork projects "
+                          "(default ~/Documents/Claude/Projects)")
+    dsc.set_defaults(func=cmd_discover)
+
     r = sub.add_parser("remove", help="remove a project by id")
     r.add_argument("id")
     r.set_defaults(func=cmd_remove)
@@ -304,6 +422,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("status", help="show where things stand").set_defaults(
         func=cmd_status)
+
+    lg = sub.add_parser("log", help="show recent sync activity")
+    lg.add_argument("--lines", type=int, default=20, help="how many lines")
+    lg.set_defaults(func=cmd_log)
+
     d = sub.add_parser("dashboard", help="open the visual status dashboard")
     d.add_argument("--no-open", action="store_true",
                    help="write the HTML file but don't open a browser")

@@ -109,3 +109,16 @@ def test_cli_dashboard_reflects_synced_state(env, capsys, monkeypatch):
     main(["dashboard", "--no-open"])
     html_text = (env["lj"] / "dashboard.html").read_text(encoding="utf-8")
     assert "In sync" in html_text  # the green status light wording
+
+
+def test_dashboard_has_recent_activity_after_sync(env, capsys, monkeypatch):
+    import webbrowser
+    monkeypatch.setattr(webbrowser, "open", lambda *a, **k: None)
+    main(["init"])
+    main(["add", "Meter", "--status", "shipped"])
+    main(["sync"])
+    capsys.readouterr()
+    main(["dashboard", "--no-open"])
+    html_text = (env["lj"] / "dashboard.html").read_text(encoding="utf-8")
+    assert "Recent activity" in html_text
+    assert "sync" in html_text

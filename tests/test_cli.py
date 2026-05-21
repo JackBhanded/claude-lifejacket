@@ -115,9 +115,47 @@ def test_update(env, capsys):
     assert "Updated" in capsys.readouterr().out
 
 
+def test_show_details_and_folder_contents(env, capsys, tmp_path):
+    # A real folder with a couple of files to peek into.
+    proj = tmp_path / "MyRepo"
+    proj.mkdir()
+    (proj / "README.md").write_text("hi", encoding="utf-8")
+    (proj / "src").mkdir()
+    main(["init"])
+    main(["add", "MyRepo", "--status", "active", "--path", str(proj)])
+    capsys.readouterr()
+    assert main(["show", "myrepo"]) == 0
+    out = capsys.readouterr().out
+    assert "MyRepo" in out
+    assert "active" in out
+    assert "README.md" in out      # peeked into the folder
+    assert "src/" in out           # directories get a trailing slash
+
+
+def test_show_missing_project(env, capsys):
+    main(["init"])
+    capsys.readouterr()
+    assert main(["show", "ghost"]) == 1
+    assert "No project" in capsys.readouterr().out
+
+
 def test_no_command_prints_help(env, capsys):
     assert main([]) == 0
     assert "lifejacket" in capsys.readouterr().out.lower()
+
+
+def test_log_empty_then_after_sync(env, capsys):
+    main(["init"])
+    capsys.readouterr()
+    assert main(["log"]) == 0
+    assert "No activity yet" in capsys.readouterr().out
+    main(["add", "Meter"])
+    main(["sync"])
+    capsys.readouterr()
+    assert main(["log"]) == 0
+    out = capsys.readouterr().out
+    assert "Recent activity" in out
+    assert "sync" in out
 
 
 def test_doctor(env, capsys):

@@ -220,6 +220,36 @@ def test_manifest_missing_is_empty(tmp_path):
 
 
 # --------------------------------------------------------------------------- #
+# activity log
+# --------------------------------------------------------------------------- #
+
+def test_activity_log_empty_initially(tmp_path):
+    s = fresh(tmp_path)
+    assert s.read_recent_events() == []
+
+
+def test_log_event_appends_and_reads_back(tmp_path):
+    s = fresh(tmp_path)
+    s.log_event("first thing")
+    s.log_event("second thing")
+    events = s.read_recent_events()
+    assert len(events) == 2
+    assert "first thing" in events[0]
+    assert "second thing" in events[1]
+    # Each line is timestamped.
+    assert events[0][:4].isdigit()
+
+
+def test_read_recent_events_limit(tmp_path):
+    s = fresh(tmp_path)
+    for i in range(10):
+        s.log_event(f"event {i}")
+    last3 = s.read_recent_events(3)
+    assert len(last3) == 3
+    assert "event 9" in last3[-1]
+
+
+# --------------------------------------------------------------------------- #
 # default_home env override
 # --------------------------------------------------------------------------- #
 

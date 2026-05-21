@@ -109,7 +109,11 @@ def sync_all(
                 status=str(result.status),
                 digest_hash=fp,
             )
+            store.log_event(f"sync - {surface.label}: {result.status}")
         reports.append(SurfaceReport(surface=surface, result=result))
+
+    if not dry_run and not surfaces:
+        store.log_event("sync - no Claude memory surfaces found")
 
     # Keep the human-readable mirror in step (skip on dry-run — preview only).
     if not dry_run:

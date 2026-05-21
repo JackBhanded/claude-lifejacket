@@ -60,30 +60,37 @@ Lifejacket refuses to write rather than risk your config.
 
 ## Install
 
-Requires Python 3.9+.
+**Easiest — the app (Windows):** download **`Claude Lifejacket.exe`** from the
+[latest release](https://github.com/JackBhanded/claude-lifejacket/releases) and
+double-click it. A little window opens showing your projects, with checkboxes to
+pick what to share, a **Sync** button, an **Auto-sync** toggle, and **Open
+dashboard**. No Python, no terminal.
 
-```bash
-pip install --user .
-```
+**For the command line (any platform):** requires Python 3.9+
+([get it here](https://www.python.org/downloads/) — on Windows tick "Add Python
+to PATH").
 
-(From the project folder. A PyPI release will follow.)
+- Windows: right-click `install.ps1` → **Run with PowerShell** (installs for you,
+  no admin), or `pip install --user .`
+- macOS/Linux: `pip install --user .`
 
-On Windows, if `lifejacket` isn't found afterward, that's just the Scripts
-folder not being on PATH — every command also works as
-`python -m claude_lifejacket ...`.
+After installing, `python -m claude_lifejacket <command>` always works; from the
+project folder you can also run `.\lifejacket <command>` (Windows) or
+`./lifejacket <command>` (macOS/Linux).
 
 ## Quickstart
 
 ```bash
 lifejacket init                              # set up your local logbook
-lifejacket add "Claude Meter" --status shipped \
-    --repo github.com/JackBhanded/claude-meter \
-    --focus "usage logging next"
-lifejacket add "Claude Lifejacket" --status building
-lifejacket sync                              # share it with every Claude session
+lifejacket discover                          # find your existing projects...
+lifejacket discover --all                    # ...and add them (or --add 1,3,4)
+lifejacket sync                              # share them with every Claude session
 lifejacket install-hook                      # make sync automatic, forever
 lifejacket dashboard                         # see it all in your browser
 ```
+
+Prefer to add projects by hand? `lifejacket add "Claude Meter" --status shipped
+--repo github.com/JackBhanded/claude-meter --focus "usage logging next"`.
 
 That's it. From now on, every Claude Code session — and Cowork, via the same
 file — starts already aware of your projects.
@@ -106,11 +113,14 @@ see precisely what it wrote.
 |---|---|
 | `lifejacket init` | Create the local logbook (`~/.claude-lifejacket/`) |
 | `lifejacket add "Name" [--status --focus --repo --path]` | Add a project |
+| `lifejacket discover [--all] [--add 1,3]` | Find projects (Claude Code history + your Cowork Projects folder) not yet in the logbook, and add the ones you pick |
 | `lifejacket list` | Show your projects |
+| `lifejacket show <id>` | One project's details + a peek at its folder contents |
 | `lifejacket update <id> [...]` | Change a project's fields |
 | `lifejacket remove <id>` | Remove a project |
 | `lifejacket sync [--dry-run] [--force]` | Push the digest into your Claude memory |
 | `lifejacket status` | Where everything stands, per surface |
+| `lifejacket log [--lines N]` | Recent sync activity (so you can see it's working) |
 | `lifejacket dashboard [--no-open]` | Open the visual status page |
 | `lifejacket install-hook` / `uninstall-hook` | Turn automatic syncing on/off |
 | `lifejacket doctor` | Quick health check |

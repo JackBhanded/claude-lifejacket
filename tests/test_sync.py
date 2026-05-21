@@ -232,6 +232,15 @@ def test_no_surface_no_crash(tmp_path):
     assert reports == []
 
 
+def test_sync_writes_activity_log(tmp_path):
+    s = make_store(tmp_path)
+    ch = make_claude_home(tmp_path)
+    sync_all(s, claude_home=ch)
+    events = s.read_recent_events()
+    assert events, "expected the sync to log activity"
+    assert any("sync" in e and "created" in e for e in events)
+
+
 def test_report_headline_is_friendly(tmp_path):
     s = make_store(tmp_path)
     ch = make_claude_home(tmp_path)

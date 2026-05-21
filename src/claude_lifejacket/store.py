@@ -152,6 +152,34 @@ class Store:
     def backups_dir(self) -> Path:
         return self.home / "backups"
 
+    @property
+    def activity_log_path(self) -> Path:
+        return self.home / "activity.log"
+
+    # -- activity log ------------------------------------------------------- #
+    def log_event(self, message: str) -> None:
+        """Append a timestamped line to the activity log so you can always see
+        what Lifejacket has been doing. Best-effort — a logging hiccup must
+        never break a sync."""
+        try:
+            self.home.mkdir(parents=True, exist_ok=True)
+            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with self.activity_log_path.open("a", encoding="utf-8") as fh:
+                fh.write(f"{ts}  {message}\n")
+        except OSError:
+            pass
+
+    def read_recent_events(self, limit: int = 20) -> List[str]:
+        """The most recent activity lines, newest last. [] if nothing logged."""
+        p = self.activity_log_path
+        if not p.exists():
+            return []
+        try:
+            lines = [l for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+        except OSError:
+            return []
+        return lines[-limit:]
+
     # -- lifecycle ---------------------------------------------------------- #
     def init(self) -> None:
         """Create the store directory and an empty registry if absent. Safe to

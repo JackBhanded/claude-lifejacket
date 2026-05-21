@@ -18,8 +18,24 @@ projects, safely.
 - **Surface detection + sync** — finds the user-level `~/.claude/CLAUDE.md`
   (read by both Claude Code and Cowork) and splices the digest in safely;
   records every outcome in a manifest.
-- **CLI** — `init`, `add`, `list`, `update`, `remove`, `sync`, `status`,
-  `dashboard`, `install-hook`, `uninstall-hook`, `doctor`.
+- **CLI** — `init`, `add`, `discover`, `list`, `show`, `update`, `remove`,
+  `sync`, `status`, `dashboard`, `install-hook`, `uninstall-hook`, `doctor`.
+- **`discover`** — finds projects from your Claude Code history and your Cowork
+  Projects folder that aren't in the logbook yet, and adds the ones you pick (so
+  you never have to remember and re-type them).
+- **`show <id>`** — a project's full details plus a peek at its folder contents.
+- **Activity log** — every sync writes a timestamped line to
+  `~/.claude-lifejacket/activity.log`. See it via `lifejacket log`, the
+  "Recent activity" panel in the app window and dashboard, or the app's
+  "Open log" button — so you can always tell syncing is working.
+- **Double-click app** — `Claude Lifejacket.exe` (PySide6): a light-Claude
+  window with your projects, checkboxes to pick what to share, and Sync /
+  Auto-sync / Open-dashboard buttons. No terminal. Built via PyInstaller +
+  GitHub Actions, same as Claude Meter. GUI logic lives in a fully-tested,
+  Qt-free `appmodel`.
+- **Easy install** — a one-click Windows `install.ps1`, plus `lifejacket`/
+  `lifejacket.bat` wrappers so you can run it from the folder without touching
+  PATH.
 - **SessionStart hook** — re-syncs and injects the digest at the start of every
   Claude Code session; `settings.json` is edited with the same never-corrupt
   care as your CLAUDE.md.
