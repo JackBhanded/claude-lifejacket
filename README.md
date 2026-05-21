@@ -174,6 +174,12 @@ Lifejacket is one of a set of open tools for people who build with Claude:
 - **[Claude Meter](https://github.com/JackBhanded/claude-meter)** — live usage on your taskbar.
 - **[Claude Lifeboat](https://github.com/JackBhanded/claude-lifeboat)** — backup & restore for your Claude data.
 - **Claude Lifejacket** — keep every session aware of your projects. *(you are here)*
+- **[Claude Compass](https://github.com/JackBhanded/claude-compass)** — keep every session attuned to *you* (your working style).
+
+**Better together:** Lifejacket teaches every Claude session *what you're working
+on*; [Compass](https://github.com/JackBhanded/claude-compass) teaches it *how you
+like to work*. Install both and a fresh session opens already knowing your
+projects **and** your style — context + personalization, zero re-explaining.
 
 ## About the author
 
