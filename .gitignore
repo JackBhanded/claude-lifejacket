@@ -19,6 +19,7 @@ Thumbs.db
 # Local-only helpers (not for the public repo)
 push-to-github.ps1
 _setup-repo.ps1
+LAUNCH.md
 
 # Anything generated into a local store accidentally placed here
 dashboard.html
