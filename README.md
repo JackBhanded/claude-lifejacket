@@ -61,8 +61,8 @@ Lifejacket refuses to write rather than risk your config.
 ## Install
 
 **Easiest — the app (Windows):** download **`Claude Lifejacket.exe`** from the
-[latest release](https://github.com/JackBhanded/claude-lifejacket/releases) and
-double-click it. A little window opens showing your projects, with checkboxes to
+[latest release](https://github.com/JackBhanded/claude-lifejacket/releases/latest)
+and double-click it. A little window opens showing your projects, with checkboxes to
 pick what to share, a **Sync** button, an **Auto-sync** toggle, and **Open
 dashboard**. No Python, no terminal.
 
