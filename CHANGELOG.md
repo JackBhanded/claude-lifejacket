@@ -3,6 +3,12 @@
 All notable changes to Claude Lifejacket are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] — 2026-05-21
+
+Release-automation fix so the prebuilt `Claude Lifejacket.exe` builds and
+attaches to the GitHub release automatically (the workflow now has the
+permission it needs). No functional changes to the app itself.
+
 ## [0.1.0] — 2026-05-21
 
 First public release. Sync-in only — keep every Claude session aware of your
