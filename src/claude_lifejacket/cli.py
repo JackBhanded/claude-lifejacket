@@ -11,6 +11,7 @@ Commands:
     lifejacket install-hook         make sync automatic (SessionStart hook)
     lifejacket uninstall-hook       remove the automatic hook
     lifejacket hook                 (internal) run by Claude Code on session start
+    lifejacket tray                 run quietly in your system tray
     lifejacket doctor               quick health check
 
 Every line of output is meant to bring a small smile — even the unhappy ones.
@@ -343,6 +344,16 @@ def cmd_log(args) -> int:
     return 0
 
 
+def cmd_tray(args) -> int:
+    try:
+        from .app import main as app_main
+    except Exception:
+        _out(f"{LIFE_RING} The tray needs the desktop app. Install PySide6: "
+             "pip install --user PySide6")
+        return 1
+    return app_main(start_in_tray=True)
+
+
 def cmd_doctor(args) -> int:
     s = _store()
     _out(f"{LIFE_RING} Lifejacket check-up")
@@ -436,6 +447,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("uninstall-hook", help="remove the automatic hook").set_defaults(
         func=cmd_uninstall_hook)
     sub.add_parser("hook", help=argparse.SUPPRESS).set_defaults(func=cmd_hook)
+    sub.add_parser("tray", help="run quietly in your system tray").set_defaults(
+        func=cmd_tray)
     sub.add_parser("doctor", help="quick health check").set_defaults(
         func=cmd_doctor)
 

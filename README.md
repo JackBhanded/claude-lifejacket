@@ -165,6 +165,39 @@ On Windows you can also just double-click `run-tests.bat`.
 - **Claude Compass** — a sibling tool that syncs *you* (working style,
   preferences) into every session, sharing this same safe-write engine.
 
+## How it differs from the alternatives
+
+The idea of "give the agent persistent memory" is a busy space — but most of it
+solves a *different* problem than Lifejacket does. The honest comparison:
+
+- **[Cline Memory Bank](https://docs.cline.bot/features/memory-bank)** and its
+  Claude Code port **[claude-code-memory-bank](https://github.com/hudrazine/claude-code-memory-bank)**
+  build a rich, multi-file knowledge base *per project*, maintained by the agent
+  itself. If you want deep, structured docs about **one** codebase, they're
+  excellent. Lifejacket goes the other way: a tiny, one-line-per-project digest
+  that spans **all** your projects and is hand-curated, so every session gets
+  cheap, current orientation rather than a big knowledge base to wade through.
+- **CLAUDE.md generators** (e.g. [ClaudeForge](https://github.com/alirezarezvani/ClaudeForge),
+  keeborg) do a great one-shot job of *writing* a CLAUDE.md for you. Lifejacket
+  isn't a generator — it's an ongoing, **safe-write** sync that owns just its own
+  labelled block and never clobbers your hand-edits.
+- **[mem0 / OpenMemory MCP](https://github.com/mem0ai/mem0)** and the
+  **[official memory MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/memory)**
+  are powerful universal memories (vector stores, knowledge graphs) that the model
+  *chooses* to query. They're the right tool if you want cross-tool, pull-based
+  recall. Lifejacket's digest is the opposite by design: zero-dependency plain
+  text that's **guaranteed present** in the file both Claude Code and Cowork
+  always read — nothing to opt into, nothing to forget to call.
+- **[claude-mem](https://github.com/thedotmack/claude-mem)** and
+  context-keeper-style tools auto-capture and compress your *sessions* into memory.
+  That's automatic but lossy, and per-session. Lifejacket is a hand-kept project
+  logbook — small, deliberate, and yours to edit.
+
+In short: if you want an agent-maintained, single-project knowledge base, or a
+heavyweight universal memory, the tools above are great. Lifejacket fills the spot
+none of them occupy — a **curated, cross-project, one-line digest, safely written
+into the one file every Claude surface already reads.**
+
 ## Part of a little fleet
 
 Lifejacket is one of a set of open tools for people who build with Claude:

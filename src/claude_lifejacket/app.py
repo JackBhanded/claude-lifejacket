@@ -58,12 +58,59 @@ def _missing_pyside_message() -> str:
     )
 
 
-def main() -> int:
+def _lifejacket_vest_svg(size=64):
+    """A clean little life-vest glyph in Claude's orange. The tray icon uses this
+    (rather than the Claude logo) so Lifejacket is easy to tell apart from the
+    other fleet tools at a glance — they'd otherwise all show the same asterisk.
+    The Claude logo stays the brand mark in the window header and the README."""
+    o = _ORANGE
+    return (
+        f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" '
+        f'xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><title>Lifejacket</title>'
+        # the two front panels of the vest
+        f'<rect x="3.5" y="7" width="6.2" height="13" rx="2" fill="none" '
+        f'stroke="{o}" stroke-width="1.6"/>'
+        f'<rect x="14.3" y="7" width="6.2" height="13" rx="2" fill="none" '
+        f'stroke="{o}" stroke-width="1.6"/>'
+        # the collar / neck opening
+        f'<path d="M9 7 L12 4.5 L15 7" fill="none" stroke="{o}" '
+        f'stroke-width="1.6" stroke-linejoin="round"/>'
+        # the reflective strap across the middle
+        f'<rect x="3" y="13.4" width="18" height="2.2" rx="0.6" fill="{o}"/>'
+        f'</svg>'
+    )
+
+
+def _make_tray_icon():
+    """Build the tray QIcon from the life-vest glyph (rendered SVG), with a dot
+    fallback if SVG rendering isn't available."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QIcon, QPainter, QPixmap
+    pm = QPixmap(64, 64)
+    pm.fill(Qt.transparent)
+    try:
+        from PySide6.QtCore import QByteArray
+        from PySide6.QtSvg import QSvgRenderer
+        r = QSvgRenderer(QByteArray(_lifejacket_vest_svg(64).encode("utf-8")))
+        p = QPainter(pm)
+        r.render(p)
+        p.end()
+    except Exception:
+        from PySide6.QtGui import QColor
+        p = QPainter(pm)
+        p.setBrush(QColor(_ORANGE))
+        p.setPen(Qt.NoPen)
+        p.drawEllipse(8, 8, 48, 48)
+        p.end()
+    return QIcon(pm)
+
+
+def main(start_in_tray: bool = False) -> int:
     try:
         from PySide6.QtCore import Qt
         from PySide6.QtWidgets import (
-            QApplication, QCheckBox, QFrame, QHBoxLayout, QLabel,
-            QPushButton, QScrollArea, QVBoxLayout, QWidget,
+            QApplication, QCheckBox, QFrame, QHBoxLayout, QLabel, QMenu,
+            QPushButton, QScrollArea, QSystemTrayIcon, QVBoxLayout, QWidget,
         )
     except ImportError:
         sys.stderr.write(_missing_pyside_message())
@@ -85,8 +132,26 @@ def main() -> int:
             self.setMinimumSize(560, 640)
             self.setStyleSheet(_QSS)
             self._candidate_boxes = []  # (QCheckBox, Candidate)
+            self._tray = None
             self._build()
             self.refresh()
+
+        def closeEvent(self, event):
+            # Closing the window just tucks us into the tray (if there is one),
+            # so auto-sync keeps quietly working. Quit from the tray menu to
+            # actually exit.
+            if self._tray is not None and self._tray.isVisible():
+                event.ignore()
+                self.hide()
+                try:
+                    self._tray.showMessage(
+                        "Claude Lifejacket",
+                        "Still here in your tray — keeping every session aware "
+                        "of your projects.")
+                except Exception:
+                    pass
+            else:
+                event.accept()
 
         # -- layout ------------------------------------------------------- #
         def _build(self):
@@ -267,7 +332,35 @@ def main() -> int:
 
     app = QApplication.instance() or QApplication(sys.argv)
     win = LifejacketWindow()
-    win.show()
+
+    if QSystemTrayIcon.isSystemTrayAvailable():
+        from PySide6.QtGui import QAction
+        app.setQuitOnLastWindowClosed(False)   # closing the window hides to tray
+
+        def _show():
+            win.showNormal(); win.raise_(); win.activateWindow()
+
+        tray = QSystemTrayIcon(_make_tray_icon())
+        tray.setToolTip("Claude Lifejacket")
+        menu = QMenu()
+        a_open = QAction("Open Lifejacket", menu); a_open.triggered.connect(_show)
+        a_sync = QAction("Sync now", menu); a_sync.triggered.connect(win._sync)
+        a_dash = QAction("Open dashboard", menu)
+        a_dash.triggered.connect(win._open_dashboard)
+        a_quit = QAction("Quit", menu); a_quit.triggered.connect(app.quit)
+        for a in (a_open, a_sync, a_dash):
+            menu.addAction(a)
+        menu.addSeparator(); menu.addAction(a_quit)
+        tray.setContextMenu(menu)
+        tray.activated.connect(
+            lambda reason: _show() if reason == QSystemTrayIcon.DoubleClick else None)
+        tray.show()
+        win._tray = tray
+        if not start_in_tray:
+            win.show()
+    else:
+        win.show()
+
     return app.exec()
 
 
