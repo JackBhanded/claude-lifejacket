@@ -63,5 +63,7 @@ safe-write engine to sync *the person* (working style) instead of projects.
 - [Claude Meter](https://github.com/JackBhanded/claude-meter) — live usage on your taskbar.
 - [Claude Lifeboat](https://github.com/JackBhanded/claude-lifeboat) — backup & restore for Claude data.
 - **Claude Lifejacket** — you are here.
+- [Claude Compass](https://github.com/JackBhanded/claude-compass) — keep every session attuned to how you like to work.
+- [Claude Parachute](https://github.com/JackBhanded/claude-parachute) — the net for the bash changes /rewind can't see.
 
 _Maintainer's working-style/personal context is kept in private notes, not in this public file._

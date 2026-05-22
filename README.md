@@ -33,30 +33,28 @@ Cowork read** — inside a clearly marked, self-managed block. A SessionStart ho
 refreshes it automatically, so every new session opens already knowing what
 you're working on.
 
-## Safety first (this edits your memory files)
+## Safety first (it edits your memory file)
 
-A tool that writes to your Claude memory has exactly one unforgivable failure:
-corrupting it. Lifejacket is built so that **cannot** happen. Every write goes
-through an audited engine with seven non-negotiable guarantees:
+A tool that writes into your Claude memory has one job it must never get wrong:
+messing up that file. Lifejacket is built so it simply can't. In plain terms:
 
-1. **Never writes in place** — temp file → fsync → atomic rename. A crash
-   mid-write can't leave a half-written file.
-2. **Backs up before every change** and verifies afterward; mismatch → automatic
-   rollback.
-3. **Touches only the bytes between its own markers** — your content is never in
-   range. Ambiguous markers → it refuses and changes nothing.
-4. **Content-hashed for idempotency** — re-syncing identical content writes
-   nothing, and a block you've hand-edited is detected and **left untouched**
-   unless you explicitly `--force`.
-5. **UTF-8, no BOM, your line endings preserved** (CRLF stays CRLF).
-6. **Re-reads immediately before writing** and resolves symlinks.
-7. **Never auto-resolves a conflict** in your file — it stops and hands it back.
+- **It can't leave your file half-written** — even if your computer crashes at the
+  worst possible moment.
+- **It backs up before every change** and checks its work afterward; if anything
+  looks off, it puts the original right back.
+- **It only ever touches its own little labelled section.** Your own notes are
+  off-limits — and if it can't tell exactly where its section is, it stops and
+  changes nothing.
+- **It leaves your edits alone.** If you've hand-tweaked its section, it notices
+  and won't overwrite you unless you explicitly tell it to.
+- **It never guesses.** If something's unclear, it stops and hands the decision
+  back to you rather than risk your file.
 
-`settings.json` (for the hook) gets the same care: if it won't parse as JSON,
-Lifejacket refuses to write rather than risk your config.
+The settings file it uses to set up auto-syncing gets the same care: if that file
+isn't valid, Lifejacket refuses to touch it.
 
-> 108 tests cover all of the above, including hand-edit detection, ambiguous
-> markers, CRLF preservation, unicode, and dry-run-writes-nothing.
+> 108 automated tests cover all of this — including the "don't overwrite my
+> hand-edits" and "a preview writes nothing" promises.
 
 ## Install
 
@@ -175,6 +173,7 @@ Lifejacket is one of a set of open tools for people who build with Claude:
 - **[Claude Lifeboat](https://github.com/JackBhanded/claude-lifeboat)** — backup & restore for your Claude data.
 - **Claude Lifejacket** — keep every session aware of your projects. *(you are here)*
 - **[Claude Compass](https://github.com/JackBhanded/claude-compass)** — keep every session attuned to *you* (your working style).
+- **[Claude Parachute](https://github.com/JackBhanded/claude-parachute)** — a safety net for the Bash changes Claude Code's `/rewind` can't see.
 
 **Better together:** Lifejacket teaches every Claude session *what you're working
 on*; [Compass](https://github.com/JackBhanded/claude-compass) teaches it *how you
