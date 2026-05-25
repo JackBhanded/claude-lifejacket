@@ -3,6 +3,14 @@
 All notable changes to Claude Lifejacket are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] — 2026-05-25
+
+### Fixed
+- **App window no longer crashes on launch.** The v0.1.2 redesign left a reference
+  to a removed colour constant (`_MUTED`) in the window's refresh path, so opening
+  the app raised `NameError` on Windows (where the GUI actually runs). Restored the
+  constant; the window opens cleanly.
+
 ## [0.1.2] — 2026-05-25
 
 ### Changed

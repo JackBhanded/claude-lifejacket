@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-lifejacket"
-version = "0.1.1"
+version = "0.1.3"
 description = "Keep every Claude session aware of your projects — safely syncs a curated project digest into Claude Code and Cowork memory."
 readme = "README.md"
 requires-python = ">=3.9"
