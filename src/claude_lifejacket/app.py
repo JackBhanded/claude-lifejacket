@@ -19,8 +19,9 @@ from .appmodel import add_candidates, build_snapshot, do_sync, set_autosync
 from .dashboard import _claude_logo_svg, write_dashboard
 from .store import Store, default_home
 
-# Kept for the tray-glyph fill.
+# Kept for the tray-glyph fill + a few inline status/caption colours in refresh().
 _ORANGE = "#C8632F"
+_MUTED = "#8A8178"
 _OK, _WARN, _ERR, _IDLE = "#2E7D63", "#B97E1E", "#B6492F", "#8C8174"
 _STATE_COLOUR = {"in_sync": _OK, "out_of_date": _WARN, "never": _IDLE, "attention": _ERR}
 
