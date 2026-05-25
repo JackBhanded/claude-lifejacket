@@ -14,38 +14,54 @@ from __future__ import annotations
 import sys
 import webbrowser
 
+from . import startup
 from .appmodel import add_candidates, build_snapshot, do_sync, set_autosync
 from .dashboard import _claude_logo_svg, write_dashboard
 from .store import Store, default_home
 
-# Palette (light "Claude brew", matches the dashboard).
-_CREAM = "#F4EEE4"
-_CARD = "#FBF8F2"
-_INK = "#2B2722"
-_MUTED = "#8A8178"
-_ORANGE = "#D97757"
-_LINE = "#E7DFD2"
-_OK = "#3F8F77"
-_WARN = "#D9A757"
-_ERR = "#C0563F"
-_IDLE = "#B8AFA3"
-
+# Kept for the tray-glyph fill.
+_ORANGE = "#C8632F"
+_OK, _WARN, _ERR, _IDLE = "#2E7D63", "#B97E1E", "#B6492F", "#8C8174"
 _STATE_COLOUR = {"in_sync": _OK, "out_of_date": _WARN, "never": _IDLE, "attention": _ERR}
 
-_QSS = f"""
-QWidget {{ background: {_CREAM}; color: {_INK};
+# --- the fleet's elevated-brew look, tuned for Qt, with a sleek dark mode. ----
+_LIGHT = {
+    "bg": "#F4EFE6", "ink": "#1C1712", "muted": "#5F564B", "orange": "#C8632F",
+    "orange2": "#E0875C", "line": "#E4DBCC", "btn": "#FBF6EE", "btnhover": "#FFFFFF",
+    "scroll": "#D9CFBE", "shadow_a": 46,
+}
+_DARK = {
+    "bg": "#17120E", "ink": "#F7F1E7", "muted": "#B7AEA2", "orange": "#E0875C",
+    "orange2": "#EE9E75", "line": "#3A322A", "btn": "#241D16", "btnhover": "#312820",
+    "scroll": "#43392F", "shadow_a": 150,
+}
+
+
+def _qss(dark: bool) -> str:
+    c = _DARK if dark else _LIGHT
+    grad = (f"qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {c['orange2']}, "
+            f"stop:1 {c['orange']})")
+    return f"""
+QWidget {{ background: {c['bg']}; color: {c['ink']};
            font-family: 'Segoe UI', -apple-system, Roboto, Arial; font-size: 13px; }}
-QLabel#title {{ font-size: 20px; font-weight: 600; }}
-QLabel#sub {{ color: {_MUTED}; font-size: 12px; }}
-QLabel#section {{ color: {_MUTED}; font-size: 11px; font-weight: 600; }}
-QFrame#card {{ background: {_CARD}; border: 1px solid {_LINE}; border-radius: 12px; }}
-QPushButton {{ background: {_CARD}; border: 1px solid {_LINE};
-               border-radius: 9px; padding: 8px 16px; }}
-QPushButton:hover {{ background: #fff; }}
-QPushButton#primary {{ background: {_ORANGE}; color: white; border: none; font-weight: 600; }}
-QPushButton#primary:hover {{ background: #c8633f; }}
-QCheckBox {{ padding: 3px; }}
-QScrollArea {{ border: none; }}
+QLabel#title {{ font-size: 22px; font-weight: 700; color: {c['ink']}; }}
+QLabel#sub {{ color: {c['muted']}; font-size: 12px; }}
+QLabel#section {{ color: {c['muted']}; font-size: 11px; font-weight: 700; }}
+QFrame#card {{ background: transparent; border: 1px solid {c['line']}; border-radius: 14px; }}
+QPushButton {{ background: {c['btn']}; border: 1px solid {c['line']};
+               border-radius: 10px; padding: 8px 16px; color: {c['ink']}; }}
+QPushButton:hover {{ background: {c['btnhover']}; border-color: {c['orange']}; }}
+QPushButton#primary {{ background: {grad}; color: white; border: none; font-weight: 700; }}
+QPushButton#primary:hover {{ background: {c['orange']}; }}
+QPushButton#toggle {{ background: {c['btn']}; border: 1px solid {c['line']}; border-radius: 10px;
+  padding: 7px 14px; color: {c['muted']}; font-weight: 600; }}
+QPushButton#toggle:hover {{ color: {c['ink']}; border-color: {c['orange']}; background: {c['btnhover']}; }}
+QCheckBox {{ padding: 3px; spacing: 8px; color: {c['ink']}; }}
+QScrollArea {{ border: none; background: transparent; }}
+QScrollBar:vertical {{ background: transparent; width: 10px; margin: 2px; }}
+QScrollBar::handle:vertical {{ background: {c['scroll']}; border-radius: 5px; min-height: 30px; }}
+QScrollBar::handle:vertical:hover {{ background: {c['muted']}; }}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0; }}
 """
 
 
@@ -129,8 +145,12 @@ def main(start_in_tray: bool = False) -> int:
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Claude Lifejacket")
-            self.setMinimumSize(560, 640)
-            self.setStyleSheet(_QSS)
+            self.setMinimumSize(660, 660)
+            self.resize(700, 720)
+            from PySide6.QtCore import QSettings
+            self._settings = QSettings("Jack", "ClaudeLifejacket")
+            self._dark = self._settings.value("dark", False, type=bool)
+            self.setStyleSheet(_qss(self._dark))
             self._candidate_boxes = []  # (QCheckBox, Candidate)
             self._tray = None
             self._build()
@@ -153,6 +173,15 @@ def main(start_in_tray: bool = False) -> int:
             else:
                 event.accept()
 
+        def _toggle_theme(self):
+            self._dark = not self._dark
+            try:
+                self._settings.setValue("dark", self._dark)
+            except Exception:
+                pass
+            self.setStyleSheet(_qss(self._dark))
+            self._theme_btn.setText("Light" if self._dark else "Dark")
+
         # -- layout ------------------------------------------------------- #
         def _build(self):
             root = QVBoxLayout(self)
@@ -173,6 +202,11 @@ def main(start_in_tray: bool = False) -> int:
             sub.setObjectName("sub")
             titles.addWidget(t); titles.addWidget(sub)
             header.addLayout(titles); header.addStretch(1)
+            self._theme_btn = QPushButton("Light" if self._dark else "Dark")
+            self._theme_btn.setObjectName("toggle")
+            self._theme_btn.setCursor(Qt.PointingHandCursor)
+            self._theme_btn.clicked.connect(self._toggle_theme)
+            header.addWidget(self._theme_btn)
             root.addLayout(header)
 
             # Scroll body
@@ -331,6 +365,18 @@ def main(start_in_tray: bool = False) -> int:
             self._status.setText(f"  Activity log: {p}")
 
     app = QApplication.instance() or QApplication(sys.argv)
+
+    # Single-instance guard: if Lifejacket is already running, don't open a second
+    # window — just bow out quietly. (So a second double-click does nothing.)
+    try:
+        from PySide6.QtCore import QSharedMemory
+        _lock = QSharedMemory("ClaudeLifejacketSingleInstance")
+        if not _lock.create(1):
+            return 0
+        app._lifejacket_lock = _lock   # keep it alive for the process lifetime
+    except Exception:
+        pass
+
     win = LifejacketWindow()
 
     if QSystemTrayIcon.isSystemTrayAvailable():
@@ -350,6 +396,21 @@ def main(start_in_tray: bool = False) -> int:
         a_quit = QAction("Quit", menu); a_quit.triggered.connect(app.quit)
         for a in (a_open, a_sync, a_dash):
             menu.addAction(a)
+
+        # Start with Windows (per-user, no admin). Only meaningful for the
+        # packaged .exe, so it's greyed out when running from source.
+        a_startup = QAction("Run at startup", menu)
+        a_startup.setCheckable(True)
+        a_startup.setChecked(startup.is_enabled())
+        a_startup.setEnabled(startup.is_frozen())
+
+        def _toggle_startup(checked: bool) -> None:
+            ok = startup.enable() if checked else startup.disable()
+            if not ok:                       # registry wrote nothing — reflect reality
+                a_startup.setChecked(startup.is_enabled())
+        a_startup.toggled.connect(_toggle_startup)
+        menu.addAction(a_startup)
+
         menu.addSeparator(); menu.addAction(a_quit)
         tray.setContextMenu(menu)
         tray.activated.connect(

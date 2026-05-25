@@ -3,6 +3,35 @@
 All notable changes to Claude Lifejacket are documented here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] — 2026-05-25
+
+### Changed
+- **A gorgeous new look (elevated Claude-brew + dark mode).** The dashboard is now
+  frosted glassmorphism over a soft drifting aurora — a count-up stat row, a glassy
+  project grid, status-light surfaces, the verbatim digest, and a sleek dark mode.
+  The double-click window is restyled to match (gradient buttons, soft cards,
+  light/dark toggle).
+
+### Added
+- **System-tray companion** — run `lifejacket tray` (or close the window) and
+  Lifejacket tucks into your system tray with a small life-vest icon, so it can
+  keep quietly syncing in the background. Right-click for Open / Sync now / Open
+  dashboard / Quit; double-click to reopen the window. Closing the window now
+  hides to the tray instead of quitting.
+- **`lifejacket tray` command** to launch straight into the tray.
+- **Run at startup** — a "Run at startup" toggle in the tray menu pins Lifejacket
+  to your per-user Windows startup (no admin needed), so it keeps your sessions
+  project-aware from the moment you log in. Greyed out when running from source.
+
+### Changed
+- The tray icon is a distinct life-vest glyph (in Claude orange) rather than the
+  Claude asterisk, so Lifejacket is easy to tell apart from the other fleet tools
+  at a glance in the tray. The Claude logo stays the brand mark in the window
+  header, dashboard, and README.
+- README: added an honest **"How it differs from the alternatives"** section.
+
+[0.1.2]: https://github.com/JackBhanded/claude-lifejacket/compare/v0.1.1...v0.1.2
+
 ## [0.1.1] — 2026-05-21
 
 Release-automation fix so the prebuilt `Claude Lifejacket.exe` builds and

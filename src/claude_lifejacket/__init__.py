@@ -6,6 +6,6 @@ block, refreshed automatically. Sync-in only; the person-profile sibling
 (Compass) and sync-out come later.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Jack Bhanded"
 __license__ = "MIT"
